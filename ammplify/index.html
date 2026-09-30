@@ -97,7 +97,7 @@ footer{color:var(--muted);font-size:.85rem;border-top:1px solid var(--rule);padd
     <div class="stat"><b>30 / 36</b><span>AuditForge, AI detection</span><small>raised by any stage · after 3 runs</small></div>
     <div class="stat"><b>23 / 36</b><span>solidity-auditor v4</span><small>published result · 3 runs</small></div>
   </div>
-  <p class="note">Two tools built for different jobs: solidity-auditor gives fast feedback in minutes per pass; AuditForge is a multi-agent pipeline that takes roughly 1.5 hours per run and executes a proof-of-concept test for every finding it ships. The numbers below are shown side by side, not as a ranking.</p>
+  <p class="note">AuditForge is a multi-agent audit pipeline built for pre-audits and audit support. For every High/Medium it ships, it writes and executes a Foundry PoC against the real contracts, so each finding arrives with proof. That depth takes time, and run time grows with the size of the codebase.</p>
 </section>
 
 <section>
@@ -134,7 +134,7 @@ footer{color:var(--muted);font-size:.85rem;border-top:1px solid var(--rule);padd
     </tbody>
   </table>
   </div>
-  <p class="note">v4's Medium figures are its published totals minus its published Highs. solidity-auditor v4 finds more of the Highs (11 of 13); AuditForge's report covers more of the Mediums.</p>
+  <p class="note">v4's Medium figures are its published totals minus its published Highs.</p>
 </section>
 
 <section>
