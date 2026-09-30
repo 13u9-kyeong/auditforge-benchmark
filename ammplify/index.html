@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="AuditForge and Pashov Audit Group's solidity-auditor v4 on the same judged Sherlock contest: recall by run, High and Medium, and the triage trade-off.">
+<title>Ammplify Side-by-Side Benchmark</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#F4F6F5; --surface:#FFFFFF; --ink:#16212B; --muted:#56636E; --rule:#D7DEDF;
+  --accent:#2C5E86; --accent-soft:#E3ECF3;
+  --af:#2C5E86; --af-det:#8FB3CF; --v4:#8A6A2F; --track:#E8ECEC;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --display:"IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --ground:#10171D; --surface:#172129; --ink:#E6ECEF; --muted:#9AA8B2; --rule:#2B3842;
+    --accent:#7FB0D8; --accent-soft:#1D3040;
+    --af:#7FB0D8; --af-det:#3F6A8C; --v4:#D1AE6C; --track:#22303A;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#10171D; --surface:#172129; --ink:#E6ECEF; --muted:#9AA8B2; --rule:#2B3842;
+  --accent:#7FB0D8; --accent-soft:#1D3040;
+  --af:#7FB0D8; --af-det:#3F6A8C; --v4:#D1AE6C; --track:#22303A;
+}
+*{box-sizing:border-box}
+html{color-scheme:light}
+body{margin:0;background:var(--ground);color:var(--ink);font:400 16px/1.6 var(--body);padding-inline:20px;padding-block:40px 64px}
+main{max-width:880px;margin-inline:auto;display:flex;flex-direction:column;gap:48px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.15;font-weight:600}
+h1{font-size:clamp(2rem,5vw,2.7rem);letter-spacing:-.01em}
+h2{font-size:1.5rem}
+h3{font-size:1.1rem}
+p{margin:0;max-width:66ch}
+a{color:var(--accent)}
+.eyebrow{font:500 .75rem/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+.lede{font-size:1.08rem;color:var(--muted)}
+header,section{display:flex;flex-direction:column;gap:16px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule)}
+.stat{background:var(--surface);padding:20px;display:flex;flex-direction:column;gap:6px}
+.stat b{font:600 2.3rem/1 var(--display);font-variant-numeric:tabular-nums}
+.stat span{font-size:.95rem}
+.stat small{font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+.panel{background:var(--surface);border:1px solid var(--rule);padding:20px;display:flex;flex-direction:column;gap:18px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;font:500 .8rem/1.2 var(--mono);color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;margin-right:6px;vertical-align:-1px}
+.chart{display:flex;flex-direction:column;gap:14px}
+.group{display:grid;grid-template-columns:72px 1fr;gap:6px 12px;align-items:center}
+.group .label{font:500 .8rem/1.2 var(--mono);color:var(--muted);grid-row:span 3}
+.bar{display:flex;align-items:center;gap:8px;min-width:0}
+.track{flex:1;background:var(--track);height:16px;position:relative;min-width:0}
+.fill{height:100%}
+.val{font:500 .8rem/1 var(--mono);font-variant-numeric:tabular-nums;min-width:52px;text-align:right}
+.axis{display:grid;grid-template-columns:72px 1fr;gap:12px;font:400 .72rem/1 var(--mono);color:var(--muted)}
+.axis div{display:flex;justify-content:space-between;padding-right:60px}
+.twocol{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.tablewrap{overflow-x:auto;border:1px solid var(--rule);background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:.93rem}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font:500 .72rem/1.3 var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);background:var(--ground)}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.note{border-left:3px solid var(--accent);padding:4px 0 4px 16px;color:var(--muted);font-size:.93rem}
+.trade{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.trade .card{background:var(--surface);border:1px solid var(--rule);padding:20px;display:flex;flex-direction:column;gap:10px}
+.trade .card b{font:600 2rem/1 var(--display);font-variant-numeric:tabular-nums}
+.trade ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:.95rem}
+.tag{font:500 .72rem/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+footer{color:var(--muted);font-size:.85rem;border-top:1px solid var(--rule);padding-top:16px;display:flex;flex-direction:column;gap:6px}
+@media (max-width:480px){ .group{grid-template-columns:56px 1fr} .axis{grid-template-columns:56px 1fr} .val{min-width:44px} }
+.tabs{display:flex;flex-wrap:wrap;gap:4px;border-bottom:1px solid var(--rule);margin-bottom:-20px}
+.tabs a{font:500 .8rem/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;text-decoration:none;color:var(--muted);padding:10px 14px;border:1px solid transparent;border-bottom:0;margin-bottom:-1px}
+.tabs a:hover{color:var(--ink)}
+.tabs a[aria-current="page"]{color:var(--accent);background:var(--surface);border-color:var(--rule)}
+.tabs a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+</head>
+<body>
+<main>
+<nav class="tabs" aria-label="Benchmarks"><a href="../">Blind benchmark</a><a href="./" aria-current="page">Ammplify side-by-side</a></nav>
+
+<header>
+  <span class="eyebrow">AuditForge · Side-by-side benchmark · September 2026</span>
+  <h1>Ammplify: AuditForge alongside solidity-auditor v4</h1>
+  <p class="lede">Pashov Audit Group benchmarked its open-source <a href="https://www.pashov.com/solidity-auditor-v4" rel="noopener">solidity-auditor v4</a> on the judged Sherlock contest for Ammplify. We ran AuditForge on the same code and scored it against the same 36 judged issues, using the same three-run format.</p>
+</header>
+
+<section aria-label="Headline numbers">
+  <div class="stats">
+    <div class="stat"><b>26 / 36</b><span>AuditForge, delivered report</span><small>submission + QA · after 3 runs</small></div>
+    <div class="stat"><b>30 / 36</b><span>AuditForge, AI detection</span><small>raised by any stage · after 3 runs</small></div>
+    <div class="stat"><b>23 / 36</b><span>solidity-auditor v4</span><small>published result · 3 runs</small></div>
+  </div>
+  <p class="note">Two tools built for different jobs: solidity-auditor gives fast feedback in minutes per pass; AuditForge is a multi-agent pipeline that takes roughly 1.5 hours per run and executes a proof-of-concept test for every finding it ships. The numbers below are shown side by side, not as a ranking.</p>
+</section>
+
+<section>
+  <h2>1 · Judged issues found, run by run</h2>
+  <p>Cumulative High + Medium matches after each run. AuditForge is counted on its delivered report (submission + QA); solidity-auditor v4 on its published output.</p>
+  <div class="panel">
+    <div class="legend"><span><i style="background:var(--af)"></i>AuditForge (report)</span><span><i style="background:var(--v4)"></i>solidity-auditor v4</span></div>
+    <div class="chart" id="c-total"></div>
+  </div>
+</section>
+
+<section>
+  <h2>2 · High and Medium, fully automated report</h2>
+  <p>What the pipeline delivers end to end, with no human in the loop: every finding in the submission and QA sections of the report, matched by root cause to a judged issue. Cumulative after each run.</p>
+  <div class="twocol">
+    <div class="panel">
+      <h3>High (13 judged)</h3>
+      <div class="legend"><span><i style="background:var(--af)"></i>AuditForge</span><span><i style="background:var(--v4)"></i>v4</span></div>
+      <div class="chart" id="c-high"></div>
+    </div>
+    <div class="panel">
+      <h3>Medium (23 judged)</h3>
+      <div class="legend"><span><i style="background:var(--af)"></i>AuditForge</span><span><i style="background:var(--v4)"></i>v4</span></div>
+      <div class="chart" id="c-med"></div>
+    </div>
+  </div>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>After</th><th>AuditForge High</th><th>AuditForge Medium</th><th>AuditForge total</th><th>v4 High</th><th>v4 Medium</th><th>v4 total</th></tr></thead>
+    <tbody>
+      <tr><td>Run 1</td><td class="num">3 / 13</td><td class="num">15 / 23</td><td class="num">18 / 36</td><td class="num">5 / 13</td><td class="num">8 / 23</td><td class="num">13 / 36</td></tr>
+      <tr><td>Run 2</td><td class="num">8 / 13</td><td class="num">17 / 23</td><td class="num">25 / 36</td><td class="num">8 / 13</td><td class="num">11 / 23</td><td class="num">19 / 36</td></tr>
+      <tr><td>Run 3</td><td class="num">9 / 13</td><td class="num">17 / 23</td><td class="num">26 / 36</td><td class="num">11 / 13</td><td class="num">12 / 23</td><td class="num">23 / 36</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">v4's Medium figures are its published totals minus its published Highs. solidity-auditor v4 finds more of the Highs (11 of 13); AuditForge's report covers more of the Mediums.</p>
+</section>
+
+<section>
+  <h2>3 · AI detection results</h2>
+  <p>Every judged issue that any AuditForge stage raised at the right code, including ones an automated gate later closed or cut before the report. This is what the agents detected; section 2 is what the fully automated pipeline delivered.</p>
+  <div class="twocol">
+    <div class="panel">
+      <h3>High (13 judged)</h3>
+      <div class="legend"><span><i style="background:var(--af-det)"></i>Detected</span><span><i style="background:var(--af)"></i>Delivered</span></div>
+      <div class="chart" id="d-high"></div>
+    </div>
+    <div class="panel">
+      <h3>Medium (23 judged)</h3>
+      <div class="legend"><span><i style="background:var(--af-det)"></i>Detected</span><span><i style="background:var(--af)"></i>Delivered</span></div>
+      <div class="chart" id="d-med"></div>
+    </div>
+  </div>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>After</th><th>Detected High</th><th>Detected Medium</th><th>Detected total</th><th>Delivered total</th></tr></thead>
+    <tbody>
+      <tr><td>Run 1</td><td class="num">5 / 13</td><td class="num">18 / 23</td><td class="num">23 / 36</td><td class="num">18 / 36</td></tr>
+      <tr><td>Run 2</td><td class="num">9 / 13</td><td class="num">20 / 23</td><td class="num">29 / 36</td><td class="num">25 / 36</td></tr>
+      <tr><td>Run 3</td><td class="num">10 / 13</td><td class="num">20 / 23</td><td class="num">30 / 36</td><td class="num">26 / 36</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2>4 · The triage trade-off</h2>
+  <p>Where the line is drawn between "report it" and "close it" trades triage effort against coverage. We measured both ends on this contest, counting distinct root causes.</p>
+  <div class="trade">
+    <div class="card">
+      <span class="tag">Fully automated report</span>
+      <b>53.2%</b>
+      <p>of reported root causes match a judged issue (25 of 47).</p>
+      <ul>
+        <li>Fewer items for a human to triage.</li>
+        <li>Higher precision.</li>
+        <li>Some issues the agents found are lost: automated gates closed or cut 4 judged issues before the report.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="tag">AI detection</span>
+      <b>~27–38%</b>
+      <p>of raised root causes match a judged issue (29 of an estimated 77–109).</p>
+      <ul>
+        <li>More items for a human to triage.</li>
+        <li>Lower precision.</li>
+        <li>More issues found: 30 of 36 judged issues were raised at the right code.</li>
+      </ul>
+    </div>
+  </div>
+  <p class="note">The detection-basis denominator is a range because closed candidates are logged as ledger rows rather than titled findings; grouping them by root cause gives between 30 and 62 additional candidates. We are working on keeping the detection-level coverage while holding the report's precision, by re-attacking rule-based closures with a separate agent instead of reopening all of them.</p>
+</section>
+
+<section>
+  <h2>How this was measured</h2>
+  <div class="tablewrap">
+  <table>
+    <tbody>
+      <tr><th>Target</th><td>Sherlock contest 1054 (Ammplify), audited commit 1efcfd57, 24 files, 2,949 nSLOC</td></tr>
+      <tr><th>Answer key</th><td>36 judged issues: 13 High, 23 Medium (the same set Pashov Audit Group scored against)</td></tr>
+      <tr><th>Matching</th><td>Same root cause (same mechanism at the same code), each judged issue counted once</td></tr>
+      <tr><th>Runs</th><td>3 runs; each later run received the earlier runs' findings (titles and locations only) to look elsewhere, mirroring v4's loop mode</td></tr>
+      <tr><th>Blindness</th><td>All three runs were frozen and committed before the judging results were opened; predictions were registered before the first run</td></tr>
+      <tr><th>v4 numbers</th><td>Taken from Pashov Audit Group's published write-up, which reports the union of three runs; not re-run by us</td></tr>
+      <tr><th>Caveat</th><td>The contest predates both tools' model knowledge cutoff, so neither result is a fully out-of-sample number. One target is a small sample.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">AuditForge findings that match no judged issue are not published here. Some may be real, unreported issues and are handled through responsible disclosure.</p>
+</section>
+
+<footer>
+  <span>solidity-auditor is developed by Pashov Audit Group and is open source: <a href="https://github.com/pashov/skills" rel="noopener">github.com/pashov/skills</a>. Its results are reproduced from their public benchmark page with attribution.</span>
+  <span><a href="../">← AuditForge blind benchmark</a></span>
+</footer>
+
+</main>
+
+<script>
+(function(){
+  var runs=["Run 1","Run 2","Run 3"];
+  function chart(id,max,series){
+    var el=document.getElementById(id); if(!el) return;
+    var html="";
+    runs.forEach(function(r,i){
+      html+='<div class="group"><div class="label">'+r+'</div>';
+      series.forEach(function(s){
+        var v=s.v[i], pct=(v/max*100).toFixed(1);
+        html+='<div class="bar"><div class="track" role="img" aria-label="'+s.n+' '+r+': '+v+' of '+max+'"><div class="fill" style="width:'+pct+'%;background:var('+s.c+')"></div></div><span class="val">'+v+' / '+max+'</span></div>';
+      });
+      html+='</div>';
+    });
+    html+='<div class="axis"><span></span><div><span>0</span><span>'+max+'</span></div></div>';
+    el.innerHTML=html;
+  }
+  chart("c-total",36,[{n:"AuditForge report",c:"--af",v:[18,25,26]},{n:"solidity-auditor v4",c:"--v4",v:[13,19,23]}]);
+  chart("c-high",13,[{n:"AuditForge",c:"--af",v:[3,8,9]},{n:"v4",c:"--v4",v:[5,8,11]}]);
+  chart("c-med",23,[{n:"AuditForge",c:"--af",v:[15,17,17]},{n:"v4",c:"--v4",v:[8,11,12]}]);
+  chart("d-high",13,[{n:"Detected",c:"--af-det",v:[5,9,10]},{n:"Delivered",c:"--af",v:[3,8,9]}]);
+  chart("d-med",23,[{n:"Detected",c:"--af-det",v:[18,20,20]},{n:"Delivered",c:"--af",v:[15,17,17]}]);
+})();
+</script>
+</body>
+</html>
